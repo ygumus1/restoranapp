@@ -20,7 +20,7 @@ class RestaurantProfile(models.Model):
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=255)
     image = models.ImageField(upload_to='restaurants/')
-    minimum_order_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    minimum_order_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     category = models.ManyToManyField(ProductCategory,related_name="categories_in_restaurants" )
 
     def __str__(self):
@@ -46,7 +46,7 @@ class Order(models.Model):
     is_cancelled = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Order #{self.pk}"
+        return f"{self.user}'s order to {self.restaurant.name} restaurant"
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
