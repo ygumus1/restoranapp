@@ -26,12 +26,12 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
         model=CustomerProfile
         fields='__all__'
 
-class OrderItemSerializer(serializers.ModelSerializer):
-    product_name = serializers.CharField(source='product.name', read_only=True)
+# class OrderItemSerializer(serializers.ModelSerializer):
+#     product_name = serializers.CharField(source='product.name', read_only=True)
 
-    class Meta:
-        model=OrderItem
-        fields = '__all__'
+#     class Meta:
+#         model=OrderItem
+#         fields = '__all__'
 
 class ProductCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -51,6 +51,17 @@ class ProductSerializer(serializers.ModelSerializer):
         model=Product
         fields='__all__'
 
+    
+class OrderItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ['product_name', 'quantity', 'additional_notes', 'price']  
+
+
+
 
 class OrderSerializer(serializers.ModelSerializer):
     # products=ProductSerializer(many=True,read_only=True)
@@ -69,13 +80,8 @@ class OrderSerializer(serializers.ModelSerializer):
     
     def get_user(self, obj):
         return {
-            'id': obj.user.user.id,  # User'ın ID'sini al
+            'id': obj.user.user.id,  
             'telefon': obj.user.telefon,
             'adres': obj.user.adres,
-            'username': obj.user.user.username  # Kullanıcı adını al
+            'username': obj.user.user.username  
         }
-    
-class OrderItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrderItem
-        fields = '__all__'
