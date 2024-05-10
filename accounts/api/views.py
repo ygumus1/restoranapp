@@ -13,6 +13,62 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from accounts.models import CustomerProfile, RestaurantProfile
+from rest_framework import generics, permissions
+from rest_framework.generics import get_object_or_404
+from accounts.models import RestaurantProfile,CustomerProfile,ProductCategory,Order,OrderItem,Product,User
+from accounts.api.serializer import CustomerProfileSerializer,ProductCategorySerializer,OrderSerializer,OrderItemSerializer,ProductSerializer,RestaurantProfileSerializer
+
+class CustomerProfileAPIView(generics.ListCreateAPIView):
+    queryset = CustomerProfile.objects.all()
+    serializer_class = CustomerProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class CustomerProfileDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = CustomerProfile.objects.all()
+    serializer_class = CustomerProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class ProductCategoryAPIView(generics.ListCreateAPIView):
+    queryset = ProductCategory.objects.all()
+    serializer_class = ProductCategorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class ProductCategoryDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ProductCategory.objects.all()
+    serializer_class = ProductCategorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class OrderView(generics.ListCreateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class SingleOrderView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = OrderItem.objects.all()
+    serializer_class = OrderItemSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class RestaurantProfileAPIView(generics.ListCreateAPIView):
+    queryset = RestaurantProfile.objects.all()
+    serializer_class = RestaurantProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class RestaurantProfileDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = RestaurantProfile.objects.all()
+    serializer_class = RestaurantProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class ProductAPIView(generics.ListCreateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes =[permissions.IsAuthenticated]
+
+class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes =[permissions.IsAuthenticated]
+
+
 
 
 ### Login
@@ -58,7 +114,13 @@ class RegisterView(DefaultRegisterView):
         if account_type == 'customer':
             CustomerProfile.objects.create(user=user)
         elif account_type == 'restaurant':
+            # adress = request.data["adress"]
+            # x = RestaurantProfile.objects.create(
+            #     adress = request.data["adress"],
+            # )
             RestaurantProfile.objects.create(user=user)
+
+    
         else:
             return JsonResponse({'error': "Invalid account type"}, status=400)
 

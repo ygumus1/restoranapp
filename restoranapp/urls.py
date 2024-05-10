@@ -20,6 +20,7 @@ from accounts.api.views import RegisterView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/',include('accounts.api.urls')),
     path('api-auth/', include('rest_framework.urls')),
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
     path('dj-rest-auth/registration/', RegisterView.as_view(), name='rest_register'),

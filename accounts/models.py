@@ -39,7 +39,7 @@ class Product(models.Model):
         return self.name
 
 class Order(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, null=True)
     products = models.ManyToManyField(Product, through='OrderItem')
     restaurant = models.ForeignKey(RestaurantProfile, on_delete=models.CASCADE, null=True)
     order_date = models.DateTimeField(auto_now_add=True)
