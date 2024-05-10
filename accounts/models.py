@@ -44,9 +44,10 @@ class Order(models.Model):
     restaurant = models.ForeignKey(RestaurantProfile, on_delete=models.CASCADE, null=True)
     order_date = models.DateTimeField(auto_now_add=True)
     is_cancelled = models.BooleanField(default=False)
+    order_note = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.user}'s order to {self.restaurant.name} restaurant"
+        return f"{self.user.user}'s order to {self.restaurant.name} restaurant"
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
@@ -54,5 +55,5 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     additional_notes = models.TextField(blank=True, null=True)
 
-    def __str__(self):
-        return f"{self.quantity}x {self.product.name} for {self.order.user.username}"
+    # def __str__(self):
+    #     # return f"{self.quantity}x {self.product.name} for {self.order.user}"
