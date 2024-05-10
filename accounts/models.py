@@ -44,17 +44,21 @@ class Order(models.Model):
     restaurant = models.ForeignKey(RestaurantProfile, on_delete=models.CASCADE, null=True)
     order_date = models.DateTimeField(auto_now_add=True)
     is_cancelled = models.BooleanField(default=False)
-    order_note = models.TextField(blank=True, null=True)
+    order_note = models.TextField(max_length=150 ,blank=True, null=True)
     total_price= models.DecimalField(max_digits=5 , decimal_places=3, default=0, null=False)
 
     def __str__(self):
         return f"{self.user.user}'s order to {self.restaurant.name} restaurant"
+    
+    def get_total_price(self):
+        total = sum(item.product.price * item.quantity for item in self.orderitem_set.all())
+        return total
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    additional_notes = models.TextField(blank=True, null=True)
+    additional_notes = models.TextField(max_length=150, blank=True, null=True)
 
     def __str__(self):
         return f"{self.quantity}x {self.product.name} for {self.order.user}"

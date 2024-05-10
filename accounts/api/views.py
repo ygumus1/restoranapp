@@ -58,6 +58,8 @@ class RestaurantProfileDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = RestaurantProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    
+
 class ProductAPIView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer

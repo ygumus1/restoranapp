@@ -39,10 +39,26 @@ class ProductCategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class RestaurantProfileSerializer(serializers.ModelSerializer):
-    category = ProductCategorySerializer(many=True,read_only=True)
+    category = ProductCategorySerializer(many=True, read_only=True)
+    products = serializers.SerializerMethodField()
+
     class Meta:
-        model= RestaurantProfile
+        model = RestaurantProfile
         fields = '__all__'
+
+    def get_products(self, obj):
+        products = Product.objects.filter(restaurant=obj)
+        product_data = []
+        for product in products:
+            product_data.append({
+                'name': product.name,
+                'description': product.description,
+                'price': product.price,
+                # 'image': product.image,
+                'category': product.category.name,
+                'image': product.image.url
+            })
+        return product_data
 
 class ProductSerializer(serializers.ModelSerializer):
     restaurant = RestaurantProfileSerializer(read_only=True)
@@ -61,8 +77,6 @@ class OrderItemSerializer(serializers.ModelSerializer):
         fields = ['product_name', 'quantity', 'additional_notes', 'price']  
 
 
-
-
 class OrderSerializer(serializers.ModelSerializer):
     # products=ProductSerializer(many=True,read_only=True)
     order_item = OrderItemSerializer(source='orderitem_set', many=True, read_only=True)
@@ -70,10 +84,12 @@ class OrderSerializer(serializers.ModelSerializer):
     # user = CustomerProfileSerializer(read_only=True)
     user_name = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
+    total_price = serializers.SerializerMethodField()
 
     class Meta:
         model=Order
-        fields = '__all__'
+        # fields = '__all__'
+        exclude = ("products", )
 
     def get_user_name(self, obj):
         return obj.user.user.username 
@@ -85,3 +101,6 @@ class OrderSerializer(serializers.ModelSerializer):
             'adres': obj.user.adres,
             'username': obj.user.user.username  
         }
+    
+    def get_total_price(self, obj):
+        return obj.get_total_price()
