@@ -26,13 +26,6 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
         model=CustomerProfile
         fields='__all__'
 
-# class OrderItemSerializer(serializers.ModelSerializer):
-#     product_name = serializers.CharField(source='product.name', read_only=True)
-
-#     class Meta:
-#         model=OrderItem
-#         fields = '__all__'
-
 class ProductCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model=ProductCategory
@@ -61,11 +54,13 @@ class RestaurantProfileSerializer(serializers.ModelSerializer):
         return product_data
 
 class ProductSerializer(serializers.ModelSerializer):
-    restaurant = RestaurantProfileSerializer(read_only=True)
     category = ProductCategorySerializer(read_only=True)
+    restaurant_name = serializers.CharField(source='restaurant.name', read_only=True)
+
     class Meta:
-        model=Product
-        fields='__all__'
+        model = Product
+        fields = ['name', 'category', 'description', 'image', 'price', 'restaurant', 'restaurant_name']
+
 
     
 class OrderItemSerializer(serializers.ModelSerializer):
