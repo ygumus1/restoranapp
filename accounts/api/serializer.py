@@ -54,14 +54,15 @@ class RestaurantProfileSerializer(serializers.ModelSerializer):
         return product_data
 
 class ProductSerializer(serializers.ModelSerializer):
-    category = ProductCategorySerializer(read_only=True)
-    restaurant_name = serializers.CharField(source='restaurant.name', read_only=True)
+    restaurant_name = serializers.SerializerMethodField()
+    
 
     class Meta:
         model = Product
-        fields = ['name', 'category', 'description', 'image', 'price', 'restaurant', 'restaurant_name']
+        fields = ['name', 'category', 'description', 'image', 'price', 'restaurant_name']
 
-
+    def get_restaurant_name(self, obj):
+        return obj.restaurant.name if obj.restaurant else None
     
 class OrderItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)

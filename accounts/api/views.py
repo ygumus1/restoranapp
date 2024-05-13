@@ -17,6 +17,9 @@ from rest_framework import generics, permissions
 from rest_framework.generics import get_object_or_404
 from accounts.models import RestaurantProfile,CustomerProfile,ProductCategory,Order,OrderItem,Product,User
 from accounts.api.serializer import CustomerProfileSerializer,ProductCategorySerializer,OrderSerializer,OrderItemSerializer,ProductSerializer,RestaurantProfileSerializer
+from rest_framework import status
+from accounts.api.permissons import IsRestaurantOwnerOrReadOnly
+
 
 class CustomerProfileAPIView(generics.ListCreateAPIView):
     queryset = CustomerProfile.objects.all()
@@ -58,19 +61,27 @@ class RestaurantProfileDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = RestaurantProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    
-
-class ProductAPIView(generics.ListCreateAPIView):
+class ProductListAPIView(generics.ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes =[permissions.IsAuthenticated]
+    
+
+class ProductCreateAPIView(generics.CreateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.is_valid(raise_exception=True)
+        category = serializer.validated_data.get('category')
+        restaurant = self.request.user.restaurantprofile  
+        serializer.save(category=category, restaurant=restaurant) 
+
 
 class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes =[permissions.IsAuthenticated]
-
-
+    permission_classes =[permissions.IsAuthenticated, IsRestaurantOwnerOrReadOnly]
 
 
 ### Login

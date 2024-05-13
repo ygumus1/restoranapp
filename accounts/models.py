@@ -21,7 +21,7 @@ class RestaurantProfile(models.Model):
     address = models.CharField(max_length=255)
     image = models.ImageField(upload_to='restaurants/')
     minimum_order_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True)
-    category = models.ManyToManyField(ProductCategory,related_name="categories_in_restaurants" )
+    categories = models.ManyToManyField(ProductCategory, related_name="restaurants")
 
     def __str__(self):
         return self.name + "'s Profile"
@@ -45,13 +45,13 @@ class Order(models.Model):
     order_date = models.DateTimeField(auto_now_add=True)
     is_cancelled = models.BooleanField(default=False)
     order_note = models.TextField(max_length=150 ,blank=True, null=True)
-    total_price= models.DecimalField(max_digits=5 , decimal_places=3, default=0, null=False)
+    total_price= models.DecimalField(max_digits=10 , decimal_places=2, default=0, null=False)
 
     def __str__(self):
         return f"{self.user.user}'s order to {self.restaurant.name} restaurant"
     
     def get_total_price(self):
-        total = sum(item.product.price * item.quantity for item in self.orderitem_set.all())
+        total = sum(item.product.price * item.quantity for item in self.products.all())
         return total
 
 class OrderItem(models.Model):
