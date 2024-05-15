@@ -18,18 +18,18 @@ from rest_framework.generics import get_object_or_404
 from accounts.models import RestaurantProfile,CustomerProfile,ProductCategory,Order,OrderItem,Product,User
 from accounts.api.serializer import CustomerProfileSerializer,ProductCategorySerializer,OrderSerializer,OrderItemSerializer,ProductSerializer,RestaurantProfileSerializer
 from rest_framework import status
-from accounts.api.permissons import IsRestaurantOwnerOrReadOnly
+from accounts.api.permissons import IsRestaurantOwnerOrReadOnly, IsOwnerOrReadOnly
 
 
 class CustomerProfileAPIView(generics.ListCreateAPIView):
     queryset = CustomerProfile.objects.all()
     serializer_class = CustomerProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class CustomerProfileDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomerProfile.objects.all()
     serializer_class = CustomerProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
 class ProductCategoryAPIView(generics.ListCreateAPIView):
     queryset = ProductCategory.objects.all()
@@ -59,7 +59,8 @@ class RestaurantProfileAPIView(generics.ListCreateAPIView):
 class RestaurantProfileDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = RestaurantProfile.objects.all()
     serializer_class = RestaurantProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated,IsOwnerOrReadOnly ]
+    
 
 class ProductListAPIView(generics.ListAPIView):
     queryset = Product.objects.all()
@@ -81,8 +82,7 @@ class ProductCreateAPIView(generics.CreateAPIView):
 class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes =[permissions.IsAuthenticated, IsRestaurantOwnerOrReadOnly]
-
+    permission_classes = [permissions.IsAuthenticated, IsRestaurantOwnerOrReadOnly]
 
 ### Login
 class LoginView(APIView):

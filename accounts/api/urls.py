@@ -11,6 +11,6 @@ urlpatterns = [
     path('restaurants',api_views.RestaurantProfileAPIView.as_view(),name='restaurants'),
     path('restaurants/<int:pk>',api_views.RestaurantProfileDetailAPIView.as_view(),name='restoranlar-detail'),
     path('product/',api_views.ProductListAPIView.as_view(),name='product'),
-    path('product/create',api_views.ProductCreateAPIView.as_view(),name='product-create'),
     path('product/<int:pk>',api_views.ProductDetailAPIView.as_view(),name='product-detail'),
+    path('product/create',api_views.ProductCreateAPIView.as_view(),name='product-create'),
 ]
