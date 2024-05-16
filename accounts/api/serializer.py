@@ -37,12 +37,17 @@ class ProductCategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class RestaurantProfileSerializer(serializers.ModelSerializer):
-    category = ProductCategorySerializer(many=True, read_only=True)
+    categories = serializers.SerializerMethodField()
     products = serializers.SerializerMethodField()
 
     class Meta:
         model = RestaurantProfile
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ['id', 'products', 'name', 'address', 'image', 'minimum_order_amount', 'user', 'categories']
+
+    def get_categories(self, obj):
+        # Kategori isimlerini döndüren bir yöntem
+        return [category.name for category in obj.categories.all()]
 
     def get_products(self, obj):
         products = Product.objects.filter(restaurant=obj)
@@ -60,12 +65,16 @@ class RestaurantProfileSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     restaurant_name = serializers.SerializerMethodField()
+    category_name = serializers.SerializerMethodField()
     
 
     class Meta:
         model = Product
-        fields = ['name', 'category', 'description', 'image', 'price', 'restaurant_name']
+        fields = ['name', 'category_name', 'description', 'image', 'price', 'restaurant_name']
 
+    def get_category_name(self, obj):
+        return obj.category.name if obj.category else None
+    
     def get_restaurant_name(self, obj):
         return obj.restaurant.name if obj.restaurant else None
     
