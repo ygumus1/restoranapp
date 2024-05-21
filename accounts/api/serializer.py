@@ -113,34 +113,36 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ['product_name', 'quantity', 'additional_notes', 'price']  
+        fields = ['product_name', 'quantity', 'additional_notes', 'price']
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    # products=ProductSerializer(many=True,read_only=True)
-    order_item = OrderItemSerializer(source='orderitem_set', many=True, read_only=True)
-    restaurant=RestaurantProfileSerializer(read_only=True)
-    # user = CustomerProfileSerializer(read_only=True)
+    order_items = OrderItemSerializer(many=True)  # Değişiklik burada, source kullanmaya gerek yok
     user_name = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
     total_price = serializers.SerializerMethodField()
 
     class Meta:
-        model=Order
-        # fields = '_all_'
-        exclude = ("products", )
+        model = Order
+        fields = ['id', 'order_items', 'user', 'user_name', 'total_price']
 
     def get_user_name(self, obj):
-        return obj.user.user.username 
-    
+        return obj.user.user.username
+
     def get_user(self, obj):
         return {
-            'id': obj.user.user.id,  
+            'id': obj.user.user.id,
             'telefon': obj.user.telefon,
             'adres': obj.user.adres,
-            'username': obj.user.user.username  
-            
+            'username': obj.user.user.username
         }
-    
+
     def get_total_price(self, obj):
         return obj.get_total_price()
+
+    def create(self, validated_data):
+        order_items_data = validated_data.pop('order_items')
+        order = Order.objects.create(**validated_data)
+        for order_item_data in order_items_data:
+            OrderItem.objects.create(order=order, **order_item_data)
+        return order
