@@ -109,6 +109,7 @@ DATABASES = {
     }
 }
 
+DEFAULT_CHARSET = 'utf-8'
 
 
 # Password validation

@@ -1,24 +1,53 @@
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
-from rest_framework import serializers
 from accounts.models import RestaurantProfile,Product,Order,OrderItem,ProductCategory,CustomerProfile
+from django.contrib.auth.models import User
 
-class CustomRegisterSerializer(RegisterSerializer):
-    ACCOUNT_TYPE_CHOICES = (
-        ('customer', 'Customer'),
-        ('restaurant', 'Restaurant'),
-    )
-    account_type = serializers.ChoiceField(choices=ACCOUNT_TYPE_CHOICES)
+# class CustomRegisterSerializer(RegisterSerializer):
+#     ACCOUNT_TYPE_CHOICES = (
+#         ('customer', 'Customer'),
+#         ('restaurant', 'Restaurant'),
+#     )
+#     account_type = serializers.ChoiceField(choices=ACCOUNT_TYPE_CHOICES)
 
+#     def custom_signup(self, request, user):
+#         user.account_type = self.validated_data.get('account_type', '')
+#         user.save()
+
+#     def get_cleaned_data(self):
+#         data_dict = super().get_cleaned_data()
+#         data_dict['account_type'] = self.validated_data.get('account_type', '')
+#         return data_dict
+
+class CustomerRegisterSerializer(RegisterSerializer):
+    adres = serializers.CharField()
+    telefon=serializers.CharField()
     def custom_signup(self, request, user):
-        user.account_type = self.validated_data.get('account_type', '')
         user.save()
 
     def get_cleaned_data(self):
         data_dict = super().get_cleaned_data()
-        data_dict['account_type'] = self.validated_data.get('account_type', '')
         return data_dict
+    
+class RestaurantRegisterSerializer(RegisterSerializer):
+    username = serializers.CharField()
+    email = serializers.EmailField()
+    name = serializers.CharField()
+    address = serializers.CharField()
+    image = serializers.ImageField()
+    minimum_order_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    category = serializers.PrimaryKeyRelatedField(queryset=ProductCategory.objects.all(), many=True)
 
+    class Meta:
+        model = User
+        fields = ['username', 'password', 'email', 'name', 'address', 'image', 'minimum_order_amount', 'category']
+
+    def create(self, validated_data):
+        user_data = {key: validated_data.pop(key) for key in ['username', 'password', 'email']}
+        user = User.objects.create_user(**user_data)
+        RestaurantProfile.objects.create(user=user, **validated_data)
+        return user
+    
 ##########################
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
@@ -42,7 +71,7 @@ class RestaurantProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RestaurantProfile
-        # fields = '__all__'
+        # fields = '_all_'
         fields = ['id', 'products', 'name', 'address', 'image', 'minimum_order_amount', 'user', 'categories']
 
     def get_categories(self, obj):
@@ -98,7 +127,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model=Order
-        # fields = '__all__'
+        # fields = '_all_'
         exclude = ("products", )
 
     def get_user_name(self, obj):
@@ -110,6 +139,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'telefon': obj.user.telefon,
             'adres': obj.user.adres,
             'username': obj.user.user.username  
+            
         }
     
     def get_total_price(self, obj):
