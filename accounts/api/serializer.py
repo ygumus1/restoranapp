@@ -2,6 +2,8 @@ from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
 from accounts.models import RestaurantProfile,Product,Order,OrderItem,ProductCategory,CustomerProfile
 from django.contrib.auth.models import User
+from dj_rest_auth.serializers import PasswordResetSerializer
+from django.conf import settings
 
 # class CustomRegisterSerializer(RegisterSerializer):
 #     ACCOUNT_TYPE_CHOICES = (
@@ -22,6 +24,8 @@ from django.contrib.auth.models import User
 class CustomerRegisterSerializer(RegisterSerializer):
     adres = serializers.CharField()
     telefon=serializers.CharField()
+    account_type = serializers.CharField()
+    
     def custom_signup(self, request, user):
         user.save()
 
@@ -37,10 +41,11 @@ class RestaurantRegisterSerializer(RegisterSerializer):
     image = serializers.ImageField()
     minimum_order_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
     category = serializers.PrimaryKeyRelatedField(queryset=ProductCategory.objects.all(), many=True)
+    account_type = serializers.CharField()
 
     class Meta:
         model = User
-        fields = ['username', 'password', 'email', 'name', 'address', 'image', 'minimum_order_amount', 'category']
+        fields = ['username', 'password', 'email', 'name', 'address', 'image', 'minimum_order_amount', 'category','account_type']
 
     def create(self, validated_data):
         user_data = {key: validated_data.pop(key) for key in ['username', 'password', 'email']}
@@ -83,6 +88,7 @@ class RestaurantProfileSerializer(serializers.ModelSerializer):
         product_data = []
         for product in products:
             product_data.append({
+                'id' : product.id,
                 'name': product.name,
                 'description': product.description,
                 'price': product.price,
@@ -91,6 +97,15 @@ class RestaurantProfileSerializer(serializers.ModelSerializer):
                 'image': product.image.url
             })
         return product_data
+    
+class RestaurantSimpleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RestaurantProfile
+        fields = ['id','name','address','image','minimum_order_amount']
+
+    def get_user(self, obj):
+        return obj.user.username if obj.user else None
 
 class ProductSerializer(serializers.ModelSerializer):
     restaurant_name = serializers.SerializerMethodField()
@@ -117,14 +132,14 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    order_items = OrderItemSerializer(many=True)  # Değişiklik burada, source kullanmaya gerek yok
+    order_items = OrderItemSerializer(many=True, read_only=True)  # Değişiklik burada, source kullanmaya gerek yok
     user_name = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
     total_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = ['id', 'order_items', 'user', 'user_name', 'total_price']
+        fields = ['id', 'order_items', 'user', 'user_name', 'total_price', 'order_status']
 
     def get_user_name(self, obj):
         return obj.user.user.username
@@ -146,3 +161,23 @@ class OrderSerializer(serializers.ModelSerializer):
         for order_item_data in order_items_data:
             OrderItem.objects.create(order=order, **order_item_data)
         return order
+    
+
+    class CustomPasswordResetSerializer(PasswordResetSerializer):
+        def save(self):
+            if 'allauth' in settings.INSTALLED_APPS:
+                from allauth.account.forms import default_token_generator
+            else:
+                from django.contrib.auth.tokens import default_token_generator
+
+            request = self.context.get('request')
+            opts = {
+                'use_https': request.is_secure(),
+                'from_email': settings.DEFAULT_FROM_EMAIL,
+                'email_template_name': 'registration/password_reset_email.html',
+                'subject_template_name': 'registration/password_reset_subject.txt',
+                'request': request,
+                'token_generator': default_token_generator,
+            }
+            opts.update(self.get_email_options())
+            self.reset_form.save(**opts)

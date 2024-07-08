@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,8 +26,13 @@ SECRET_KEY = 'django-insecure-bh*@o#onr6379tt)hk&0x2ko1=@^3rl11+epe&e=rgc&k18wtg
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '10.0.5.92']
+ALLOWED_HOSTS = ['localhost', '10.0.5.92', '127.0.0.1']
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173'
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Application definition
 
@@ -39,19 +45,20 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-
+    'corsheaders',
     'django.contrib.sites',
     'dj_rest_auth',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'dj_rest_auth.registration',
-
     'requests',
     'accounts',
 ]
 
 SITE_ID = 1
+
+PASSWORD_RESET_TIMEOUT = 3600 * 24  # 24 hours in seconds
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -97,15 +104,8 @@ WSGI_APPLICATION = 'restoranapp.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'restoranapp',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'db',
-        'PORT': '5432',
-        'OPTIONS': {
-            'client_encoding': 'UTF8',
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -168,10 +168,21 @@ AUTHENTICATION_BACKENDS = (
 
 
 REST_AUTH_REGISTER_SERIALIZERS = {
-    'REGISTER_SERIALIZER': 'your_app.serializers.CustomRegisterSerializer',
+    'REGISTER_SERIALIZER': 'accounts.api.serializers.CustomRegisterSerializer',
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+REST_AUTH_SERIALIZERS = {
+    'PASSWORD_RESET_SERIALIZER': 'accounts.api.serializers.CustomPasswordResetSerializer',
+}
+
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+

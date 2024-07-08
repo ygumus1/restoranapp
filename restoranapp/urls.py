@@ -25,5 +25,7 @@ urlpatterns = [
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
     # path('dj-rest-auth/registration/', RegisterView.as_view(), name='rest_register'),
     path('dj-rest-auth/registration/customer', CustomerRegisterView.as_view(), name='customer_rest_register'),
-    path('dj-rest-auth/registration/restoran', RestaurantRegisterView.as_view())
+    path('dj-rest-auth/registration/restoran', RestaurantRegisterView.as_view()),
+    path('accounts/', include('allauth.urls')),  # Include allauth URLs
+    path('auth/', include('django.contrib.auth.urls')),  # Include Django auth URLs
 ]

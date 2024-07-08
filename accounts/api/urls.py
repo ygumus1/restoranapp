@@ -10,7 +10,9 @@ urlpatterns = [
     path('orders/<int:pk>',api_views.SingleOrderView.as_view(),name='orders-detail'),
     path('restaurants',api_views.RestaurantProfileAPIView.as_view(),name='restaurants'),
     path('restaurants/<int:pk>',api_views.RestaurantProfileDetailAPIView.as_view(),name='restoranlar-detail'),
+    path('restaurant-simple',api_views.RestaurantSimpleProfileAPIView.as_view(),name='restoran-simple'),
     path('product/',api_views.ProductListAPIView.as_view(),name='product'),
     path('product/<int:pk>',api_views.ProductDetailAPIView.as_view(),name='product-detail'),
     path('product/create',api_views.ProductCreateAPIView.as_view(),name='product-create'),
+    path('getUserRole/',api_views.GetUserRoleView.as_view(),name='get-user-ID'),
 ]

@@ -1,4 +1,5 @@
 from rest_framework.views import APIView
+from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -18,7 +19,8 @@ from accounts.api.serializer import (
     ProductSerializer,
     RestaurantProfileSerializer,
     CustomerRegisterSerializer,
-    RestaurantRegisterSerializer
+    RestaurantRegisterSerializer,
+    RestaurantSimpleSerializer
 )
 from accounts.api.permissons import IsRestaurantOwnerOrReadOnly, IsOwnerOrReadOnly
 from rest_framework import status
@@ -49,9 +51,27 @@ class OrderView(generics.ListCreateAPIView):
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get(self, request):
+        try:
+            userProfile = RestaurantProfile.objects.get(user=request.user.id)
+            items = Order.objects.filter(restaurant = userProfile.id)
+            serialized_items = OrderSerializer(items, many = True)
+            return Response({'data' : serialized_items.data})
+        except:    
+            userProfile = CustomerProfile.objects.get(user=request.user.id)
+            items = Order.objects.filter(user = userProfile.id)
+            serialized_items = OrderSerializer(items, many = True)
+            return Response({'data' : serialized_items.data})
+        
+
+# class SingleOrderItemView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = OrderItem.objects.all()
+#     serializer_class = OrderItemSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+
 class SingleOrderView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = OrderItem.objects.all()
-    serializer_class = OrderItemSerializer
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 class RestaurantProfileAPIView(generics.ListCreateAPIView):
@@ -63,7 +83,11 @@ class RestaurantProfileDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = RestaurantProfile.objects.all()
     serializer_class = RestaurantProfileSerializer
     permission_classes = [permissions.IsAuthenticated,IsOwnerOrReadOnly ]
-    
+
+class RestaurantSimpleProfileAPIView(generics.ListCreateAPIView):
+    queryset = RestaurantProfile.objects.all()
+    serializer_class =RestaurantSimpleSerializer
+    permission_classes = [permissions.IsAuthenticated]    
 
 class ProductListAPIView(generics.ListAPIView):
     queryset = Product.objects.all()
@@ -204,7 +228,7 @@ class RestaurantRegisterView(RegisterView):
         address = request.data.get('address')
         image = request.data.get('image')
         minimum_order_amount = request.data.get('minimum_order_amount')
-        categories = request.data.getlist('category')  # Birden fazla kategori al
+        categories = request.data.getlist('categories')  # Birden fazla kategori al
 
         if User.objects.filter(username__iexact=username).exists():
             return JsonResponse({'error': 'Username already exists'}, status=400)
@@ -223,7 +247,26 @@ class RestaurantRegisterView(RegisterView):
             image=image,
             minimum_order_amount=minimum_order_amount
         )
-        restaurant_profile.category.set(categories)  # Kategorileri ayarla
+        restaurant_profile.categories.set(categories)  # Kategorileri ayarla
 
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'token': token.key})
+
+class GetUserRoleView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self,request):
+        user = request.user
+        restaurant = RestaurantProfile.objects.filter(user = user)
+        customer = CustomerProfile.objects.filter(user = user)
+        if(customer):
+            return Response({
+                'customer': user.id
+            })
+        elif(restaurant):
+            return Response({
+                'restaurant': user.id
+            })
+        else:
+            return Response({'response': "hello World"})
+            
